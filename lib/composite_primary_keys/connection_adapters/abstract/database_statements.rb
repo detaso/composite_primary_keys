@@ -5,6 +5,13 @@ module ActiveRecord
         sql, binds = to_sql_and_binds(arel, binds)
         value = exec_insert(sql, name, binds, pk, sequence_name)
 
+        if pk.is_a?(Array) && id_value.nil?
+          first_pk_field = pk.first
+          first_pk_value = arel.ast.values.value.first.map(&:value).detect { |value| value.name == first_pk_field }
+
+          id_value = first_pk_value&.value.presence
+        end
+
         return id_value if id_value
 
         if pk.is_a?(Array) && !value.empty?
